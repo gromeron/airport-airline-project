@@ -1,16 +1,17 @@
 /* src/shared/testing-utils/typeorm-testing-config.ts */
 
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AirlineEntity } from '../../airline/airline.entity';
 import { AirportEntity } from '../../airport/airport.entity';
 
-export const TypeOrmTestingConfig = () => [
+export const TypeOrmTestingConfig = () => ([
     TypeOrmModule.forRoot({
         type: 'sqlite',
         database: ':memory:',
-        entities: [AirportEntity],
+        entities: [AirlineEntity, AirportEntity],
         synchronize: true,
         dropSchema: true,
         keepConnectionAlive: true
     }),
-    TypeOrmModule.forFeature([AirportEntity]),
-];
+    TypeOrmModule.forFeature([AirlineEntity, AirportEntity]),
+]);
