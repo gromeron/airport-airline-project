@@ -15,7 +15,8 @@ export class AirlineAirportController {
     // Asociar un aeropuerto a una aerolinea
     @Post(':airlineId/airports/:airportId')
     async addAirportToAirline(@Param('airlineId') airlineId: number, @Param('airportId') airportId: number) {
-        return await this.airlineAirportService.addAirportToAirline(airlineId, airportId);
+        const result = await this.airlineAirportService.addAirportToAirline(airlineId, airportId);
+        return { message: "The airport was associated to the airline", data: result }
     }
 
     // Obtener un aeropuerto por ID de una aerolinea

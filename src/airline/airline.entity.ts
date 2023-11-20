@@ -17,6 +17,6 @@ export class AirlineEntity {
     paginaWeb: string;
     
     @ManyToMany(() => AirportEntity, airport => airport.airlines)
-    @JoinTable()
+    @JoinTable({ name: 'airline_airport' })
     airports: AirportEntity[];
 }

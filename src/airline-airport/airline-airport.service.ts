@@ -1,3 +1,5 @@
+/* src/airline-airport/airline-airport.service.ts */
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,16 +18,18 @@ export class AirlineAirportService {
     ) { }
 
     async addAirportToAirline(airlineId: number, airportId: number): Promise<AirlineEntity> {
+        const airline: AirlineEntity = await this.airlineRepository.findOne({ where: { id: airlineId }, relations: ["airports"] });
+        if (!airline)
+            throw new BusinessLogicException("The airline with the given id was not found", BusinessError.NOT_FOUND);
+
         const airport: AirportEntity = await this.airportRepository.findOne({ where: { id: airportId } });
         if (!airport)
             throw new BusinessLogicException("The airport with the given id was not found", BusinessError.NOT_FOUND);
 
-        const airline: AirlineEntity = await this.airlineRepository.findOne({ where: { id: airlineId }, relations: ["airports", "airlines"] });
-        if (!airline)
-            throw new BusinessLogicException("The airline with the given id was not found", BusinessError.NOT_FOUND);
+        if (airline.airports.some(a => a.id === airport.id))
+            throw new BusinessLogicException("The airport with the given id is already associated to the airline", BusinessError.PRECONDITION_FAILED);
 
-        airline.airports = [...airline.airports, airport];
-
+        airline.airports.push(airport);
         return await this.airlineRepository.save(airline);
     }
 
@@ -69,19 +73,19 @@ export class AirlineAirportService {
     }
 
     async deleteAirportAirline(airlineId: number, airportId: number) {
-        const airport: AirportEntity = await this.airportRepository.findOne({ where: { id: airportId } });
-        if (!airport)
-            throw new BusinessLogicException("The airport with the given id was not found", BusinessError.NOT_FOUND);
-
-        const airline: AirlineEntity = await this.airlineRepository.findOne({ where: { id: airlineId } });
+        const airline: AirlineEntity = await this.airlineRepository.findOne({ where: { id: airlineId }, relations: ["airports"] });
         if (!airline)
             throw new BusinessLogicException("The airline with the given id was not found", BusinessError.NOT_FOUND);
 
-        const airlineAirport: AirportEntity = airline.airports.find(a => a.id === airport.id);
+        const airportToRemove: AirportEntity = await this.airportRepository.findOne({ where: { id: airportId } });
+        if (!airportToRemove)
+            throw new BusinessLogicException("The airport with the given id was not found", BusinessError.NOT_FOUND);
+
+        const airlineAirport: AirportEntity = airline.airports.find(a => a.id === airportToRemove.id);
         if (!airlineAirport)
             throw new BusinessLogicException("The airport with the given id is not associated to the airline", BusinessError.PRECONDITION_FAILED);
 
-        airline.airports = airline.airports.filter(a => a.id !== airportId);
-        await this.airlineRepository.save(airline);
+        airline.airports = airline.airports.filter(a => a.id !== airportToRemove.id);
+        return await this.airlineRepository.save(airline);
     }
 }
