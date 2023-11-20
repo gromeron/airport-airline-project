@@ -17,13 +17,7 @@ describe('AirlineService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [...TypeOrmTestingConfig()],
-      providers: [
-        AirlineService,
-        {
-          provide: getRepositoryToken(AirlineEntity),
-          useClass: Repository,
-        },
-      ],
+      providers: [AirlineService],
     }).compile();
 
     service = module.get<AirlineService>(AirlineService);
@@ -39,32 +33,48 @@ describe('AirlineService', () => {
         nombre: faker.person.fullName(),
         descripcion: faker.lorem.sentence(),
         fechaFundacion: faker.date.past(),
-        paginaWeb: faker.internet.url()});
-        airlinesList.push(airline);
-      }
-    };
+        paginaWeb: faker.internet.url()
+      });
+      airlinesList.push(airline);
+    }
+  };
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  // it('findAll should return all airlines', async () => {
-  //   const airlines: AirlineEntity[] = await service.findAll();
-  //   expect(airlines).not.toBeNull();
-  //   expect(airlines).toHaveLength(airlinesList.length);
-  // });
+  describe('create', () => {
+    it('should create a new airline', async () => {
+      const airlineData = {
+        id: faker.number.int(),
+        nombre: faker.person.fullName(),
+        descripcion: faker.lorem.sentence(),
+        fechaFundacion: faker.date.past(),
+        paginaWeb: faker.internet.url(),
+        airports: []
+      };
+      const result = await service.create(airlineData);
+      expect(result).toBeDefined();
+    });
 
-  // it('findOne should return an airline by id', async () => {
-  //   const storedAirline: AirlineEntity = airlinesList[0];
-  //   const airline: AirlineEntity = await service.findOne(storedAirline.id);
-  //   expect(airline).not.toBeNull();
-  //   expect(airline.nombre).toEqual(storedAirline.nombre);
-  //   expect(airline.descripcion).toEqual(storedAirline.descripcion);
-  //   expect(airline.fechaFundacion).toEqual(storedAirline.fechaFundacion);
-  //   expect(airline.paginaWeb).toEqual(storedAirline.paginaWeb);
-  // });
+  it('findAll should return all airlines', async () => {
+    const airlines: AirlineEntity[] = await service.findAll();
+    expect(airlines).not.toBeNull();
+    expect(airlines).toHaveLength(airlinesList.length);
+  });
 
-  // it('findOne should throw an execption for an invalid airline', async () => {
-  //   await expect(() => service.findOne(0)).rejects.toHaveProperty('message', 'The airline with the given id was not found');
-  // });
+  it('findOne should return an airline by id', async () => {
+    const storedAirline: AirlineEntity = airlinesList[0];
+    const airline: AirlineEntity = await service.findOne(storedAirline.id);
+    expect(airline).not.toBeNull();
+    expect(airline.nombre).toEqual(storedAirline.nombre);
+    expect(airline.descripcion).toEqual(storedAirline.descripcion);
+    expect(airline.fechaFundacion).toEqual(storedAirline.fechaFundacion);
+    expect(airline.paginaWeb).toEqual(storedAirline.paginaWeb);
+  });
+
+  it('findOne should throw an execption for an invalid airline', async () => {
+    await expect(() => service.findOne(0)).rejects.toHaveProperty('message', 'The airline with the given id was not found');
+  });
+  });
 });
